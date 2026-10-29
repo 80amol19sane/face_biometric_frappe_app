@@ -1,0 +1,133 @@
+{
+	"name": "Face Template",
+	"autoname": "field:employee",
+	"naming_rule": "By fieldname",
+	"track_changes": 1,
+	"field_order": [
+		"employee",
+		"employee_name",
+		"status",
+		"column_break_a",
+		"model_version",
+		"dimensions",
+		"section_consent",
+		"consent_given_on",
+		"approved_by",
+		"approved_on",
+		"embedding"
+	],
+	"fields": [
+		{
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"label": "Employee",
+			"options": "Employee",
+			"reqd": 1,
+			"unique": 1,
+			"set_only_once": 1,
+			"in_list_view": 1
+		},
+		{
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"label": "Employee Name",
+			"fetch_from": "employee.employee_name",
+			"read_only": 1,
+			"in_list_view": 1
+		},
+		{
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"label": "Status",
+			"options": "Pending\nActive\nRevoked",
+			"default": "Pending",
+			"reqd": 1,
+			"in_list_view": 1,
+			"in_standard_filter": 1
+		},
+		{
+			"fieldname": "column_break_a",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "model_version",
+			"fieldtype": "Data",
+			"label": "Model Version",
+			"reqd": 1,
+			"read_only": 1
+		},
+		{
+			"fieldname": "dimensions",
+			"fieldtype": "Int",
+			"label": "Dimensions",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_consent",
+			"fieldtype": "Section Break",
+			"label": "Consent And Approval"
+		},
+		{
+			"fieldname": "consent_given_on",
+			"fieldtype": "Datetime",
+			"label": "Consent Given On",
+			"reqd": 1,
+			"read_only": 1
+		},
+		{
+			"fieldname": "approved_by",
+			"fieldtype": "Link",
+			"label": "Approved By",
+			"options": "User",
+			"read_only": 1
+		},
+		{
+			"fieldname": "approved_on",
+			"fieldtype": "Datetime",
+			"label": "Approved On",
+			"read_only": 1
+		},
+		{
+			"fieldname": "embedding",
+			"fieldtype": "Long Text",
+			"label": "Embedding (encrypted)",
+			"hidden": 1,
+			"read_only": 1,
+			"no_copy": 1,
+			"print_hide": 1
+		}
+	],
+	"permissions": [
+		{
+			"role": "HR Manager",
+			"read": 1,
+			"write": 1,
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"print": 1,
+			"report": 1,
+			"export": 1,
+			"share": 1
+		},
+		{
+			"role": "System Manager",
+			"read": 1,
+			"write": 1,
+			"create": 1,
+			"delete": 1,
+			"report": 1,
+			"export": 1
+		}
+	],
+	"creation": "2026-10-29 16:00:00.000000",
+	"modified": "2026-10-29 16:00:00.000000",
+	"modified_by": "Administrator",
+	"owner": "Administrator",
+	"module": "Face Biometric",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"custom": 0,
+	"sort_field": "modified",
+	"sort_order": "DESC"
+}
