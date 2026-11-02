@@ -1,6 +1,8 @@
 import frappe
+from frappe.rate_limiter import rate_limit
+from frappe.utils import cint
 
-from face_biometric.services.enrolment import Enrolment
+from face_biometric.services.enrolment import Enrolment, StaffEnrolment
 from face_biometric.services.identity import current_employee
 
 
@@ -27,3 +29,11 @@ def my_status() -> dict:
 			"Biometric Device", {"employee": employee, "status": "Active"}, ["name", "device_label"]
 		),
 	}
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=30, seconds=60)
+def enrol_employee_face(employee: str, embedding: str, model_version: str, consent: bool) -> dict:
+	"""HR enrols an employee's face in person. Active at once, with HR recorded as the approver."""
+	template = StaffEnrolment().enrol_face(employee, embedding, model_version, bool(cint(consent)))
+	return {"employee": template.employee, "status": template.status}
