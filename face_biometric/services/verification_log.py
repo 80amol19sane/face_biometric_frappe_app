@@ -1,0 +1,27 @@
+import frappe
+from frappe.utils import add_to_date, now_datetime
+
+DOCTYPE = "Face Verification Log"
+NOT_FAILURES = ("Matched", "Locked Out")
+
+
+def record(employee: str, outcome: str, device: str | None = None, **fields) -> str:
+	log = frappe.get_doc(doctype=DOCTYPE, employee=employee, device=device, outcome=outcome, **fields)
+	log.insert(ignore_permissions=True)
+	# The caller usually raises next, which rolls the request back. Commit so the failure stays on record.
+	frappe.db.commit()
+	return log.name
+
+
+def recent_failures(employee: str, window_minutes: int) -> int:
+	"""Failed attempts inside the window and since the last success."""
+	since = add_to_date(now_datetime(), minutes=-window_minutes)
+	last_match = frappe.db.get_value(
+		DOCTYPE, {"employee": employee, "outcome": "Matched"}, "creation", order_by="creation desc"
+	)
+	if last_match and last_match > since:
+		since = last_match
+	return frappe.db.count(
+		DOCTYPE,
+		{"employee": employee, "outcome": ["not in", NOT_FAILURES], "creation": [">", since]},
+	)

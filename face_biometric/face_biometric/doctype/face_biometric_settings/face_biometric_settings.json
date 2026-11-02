@@ -1,0 +1,98 @@
+{
+	"name": "Face Biometric Settings",
+	"issingle": 1,
+	"field_order": [
+		"match_threshold",
+		"embedding_model",
+		"column_break_a",
+		"challenge_ttl_seconds",
+		"section_lockout",
+		"max_failed_attempts",
+		"lockout_minutes",
+		"section_enrolment",
+		"require_enrolment_approval"
+	],
+	"fields": [
+		{
+			"fieldname": "match_threshold",
+			"fieldtype": "Float",
+			"label": "Match Threshold",
+			"default": "0.6",
+			"reqd": 1,
+			"precision": "3",
+			"description": "Cosine similarity a face must reach to count as a match (0 to 1). Calibrate this against your model before relying on it."
+		},
+		{
+			"fieldname": "embedding_model",
+			"fieldtype": "Data",
+			"label": "Embedding Model",
+			"reqd": 1,
+			"description": "Model id the phones use. Templates from another model are refused.",
+			"default": "mobilefacenet-v1"
+		},
+		{
+			"fieldname": "column_break_a",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "challenge_ttl_seconds",
+			"fieldtype": "Int",
+			"label": "Challenge Lifetime (seconds)",
+			"default": "60",
+			"reqd": 1
+		},
+		{
+			"fieldname": "section_lockout",
+			"fieldtype": "Section Break",
+			"label": "Lockout"
+		},
+		{
+			"fieldname": "max_failed_attempts",
+			"fieldtype": "Int",
+			"label": "Failed Attempts Before Lockout",
+			"default": "5",
+			"reqd": 1
+		},
+		{
+			"fieldname": "lockout_minutes",
+			"fieldtype": "Int",
+			"label": "Lockout Minutes",
+			"default": "15",
+			"reqd": 1
+		},
+		{
+			"fieldname": "section_enrolment",
+			"fieldtype": "Section Break",
+			"label": "Enrolment"
+		},
+		{
+			"fieldname": "require_enrolment_approval",
+			"fieldtype": "Check",
+			"label": "Require HR Approval Of New Faces",
+			"default": "1",
+			"description": "Stops one employee enrolling another person's face under their own account."
+		}
+	],
+	"permissions": [
+		{
+			"role": "HR Manager",
+			"read": 1,
+			"write": 1
+		},
+		{
+			"role": "System Manager",
+			"read": 1,
+			"write": 1
+		}
+	],
+	"creation": "2026-10-29 16:00:00.000000",
+	"modified": "2026-10-29 16:00:00.000000",
+	"modified_by": "Administrator",
+	"owner": "Administrator",
+	"module": "Face Biometric",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"custom": 0,
+	"sort_field": "modified",
+	"sort_order": "DESC"
+}
