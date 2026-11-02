@@ -13,13 +13,6 @@ def register_device(public_key: str, label: str | None = None) -> dict:
 	return {"device": device.name}
 
 
-@frappe.whitelist(methods=["POST"])
-def enrol_face(device: str, embedding: str, model_version: str, consent: bool) -> dict:
-	"""Store the employee's face template. It stays Pending until HR approves it."""
-	template = Enrolment().enrol_face(device, embedding, model_version, bool(consent))
-	return {"status": template.status}
-
-
 @frappe.whitelist(methods=["GET"])
 def my_status() -> dict:
 	employee = current_employee()
