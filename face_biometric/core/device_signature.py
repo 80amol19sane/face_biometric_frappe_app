@@ -56,3 +56,15 @@ def signing_payload(
 
 def _coordinate(value: float | None) -> str:
 	return "" if value is None else f"{value:.6f}"
+
+
+KIOSK_PAYLOAD_VERSION = "fb2"
+
+
+def kiosk_payload(action: str, device: str, nonce: str, digest: str) -> bytes:
+	"""The exact bytes a kiosk signs for one request.
+
+	`digest` binds the request's content: the SHA-256 of the embedding for a face punch, or of the
+	employee id and proof photo for a PIN punch. The action stops a signature for one being used for the other.
+	"""
+	return "|".join([KIOSK_PAYLOAD_VERSION, action, device, nonce, digest]).encode()
