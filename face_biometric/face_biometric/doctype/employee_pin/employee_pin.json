@@ -2,7 +2,7 @@
 	"name": "Employee PIN",
 	"autoname": "field:employee",
 	"naming_rule": "By fieldname",
-	"track_changes": 1,
+	"track_changes": 0,
 	"field_order": [
 		"employee",
 		"employee_name",
