@@ -26,3 +26,17 @@ class Punches:
 			order_by="time desc",
 		)
 		return "OUT" if last == "IN" else "IN"
+
+	def record(
+		self, log_type: str, device: str, latitude: float | None = None, longitude: float | None = None
+	):
+		"""Insert the Employee Checkin. Server time, never the phone's clock: a phone clock can be set to anything."""
+		checkin = frappe.new_doc("Employee Checkin")
+		checkin.employee = self.employee
+		checkin.log_type = log_type
+		checkin.time = now_datetime()
+		checkin.device_id = device
+		checkin.latitude = latitude
+		checkin.longitude = longitude
+		checkin.insert(ignore_permissions=True)
+		return checkin
