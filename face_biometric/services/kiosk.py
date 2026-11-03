@@ -36,7 +36,23 @@ class Kiosk:
 	def challenge(self) -> dict:
 		self._refuse_if_paused()
 		ttl = self.settings.challenge_ttl_seconds
-		return {"nonce": ChallengeStore(ttl).issue(self.device.name), "expires_in": ttl}
+		return {
+			"nonce": ChallengeStore(ttl).issue(self.device.name),
+			"expires_in": ttl,
+			"config": self._config(),
+		}
+
+	def _config(self) -> dict:
+		"""What the kiosk screen needs to behave as HR configured it. Nothing here is secret."""
+		return {
+			"require_liveness": bool(self.settings.require_liveness),
+			"pin_enabled": bool(self.settings.pin_enabled),
+			"pin_min_length": self.settings.pin_min_length,
+			"pin_max_length": self.settings.pin_max_length,
+			"return_seconds": self.settings.kiosk_return_seconds,
+			"location": self.device.location,
+			"label": self.device.device_label,
+		}
 
 	def identify(self, nonce: str, embedding_b64: str, signature: str) -> dict:
 		"""Who is this face? Punches them in or out, or refuses without saying who came closest."""
