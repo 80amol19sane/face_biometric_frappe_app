@@ -29,14 +29,14 @@
 			"default": "0.6",
 			"reqd": 1,
 			"precision": "3",
-			"description": "Cosine similarity a face must reach to count as a match (0 to 1). Calibrate this against your model before relying on it."
+			"description": "How similar two faces must be, from 0 to 1, to count as the same person. Higher is stricter: fewer wrong people accepted, but more genuine employees rejected. Start around 0.5 and adjust from the Face Verification Log. Applies to every phone and kiosk within a minute."
 		},
 		{
 			"fieldname": "embedding_model",
 			"fieldtype": "Data",
 			"label": "Embedding Model",
 			"reqd": 1,
-			"description": "Model id the phones use. Templates from another model are refused.",
+			"description": "Identifier of the face-recognition model the app uses to turn a face into numbers. Face Templates made with a different model cannot be compared, so the server refuses them. Change it only when you roll out a new model and re-register faces.",
 			"default": "mobilefacenet-v1"
 		},
 		{
@@ -48,7 +48,8 @@
 			"fieldtype": "Int",
 			"label": "Challenge Lifetime (seconds)",
 			"default": "60",
-			"reqd": 1
+			"reqd": 1,
+			"description": "How long a one-time code issued to a phone stays valid. The phone must send its check-in before it expires; each code works only once, which blocks replayed requests. Raise it only if slow networks cause timeouts."
 		},
 		{
 			"fieldname": "section_lockout",
@@ -60,14 +61,16 @@
 			"fieldtype": "Int",
 			"label": "Failed Attempts Before Lockout",
 			"default": "5",
-			"reqd": 1
+			"reqd": 1,
+			"description": "Consecutive failed face or PIN checks for one employee before that employee is locked out. Face and PIN failures count together. A successful check resets the count."
 		},
 		{
 			"fieldname": "lockout_minutes",
 			"fieldtype": "Int",
 			"label": "Lockout Minutes",
 			"default": "15",
-			"reqd": 1
+			"reqd": 1,
+			"description": "How long a locked-out employee must wait before trying again with face or PIN."
 		},
 		{
 			"fieldname": "section_enrolment",
@@ -79,7 +82,7 @@
 			"fieldtype": "Check",
 			"label": "Require HR Approval Of New Faces",
 			"default": "1",
-			"description": "Stops one employee enrolling another person's face under their own account."
+			"description": "When on, a new face stays pending until HR approves it. Leave it on if employees can register their own face, so nobody enrols another person's face under their own account."
 		},
 		{
 			"fieldname": "section_kiosk",
@@ -91,7 +94,7 @@
 			"fieldtype": "Check",
 			"label": "Require Liveness Check",
 			"default": "1",
-			"description": "Kiosks ask for a head turn or smile before matching. The check runs on the phone, so it cannot be verified by the server."
+			"description": "Kiosks ask the person to turn their head or smile before matching, to make a held-up photo harder. The check runs on the phone, so the server cannot verify it. Turn it off only for testing."
 		},
 		{
 			"fieldname": "identify_margin",
@@ -99,13 +102,14 @@
 			"label": "Match Margin",
 			"default": "0.05",
 			"precision": "3",
-			"description": "How far the best match must beat the runner-up. Stops two similar faces being confused."
+			"description": "At a kiosk the app searches all employees. The best match must beat the second-best by at least this much, otherwise the scan is refused as ambiguous. Higher values reduce look-alike mix-ups but reject more scans. Default 0.05."
 		},
 		{
 			"fieldname": "kiosk_return_seconds",
 			"fieldtype": "Int",
 			"label": "Return To Camera After (seconds)",
-			"default": "5"
+			"default": "5",
+			"description": "After a successful check-in the kiosk shows the result for this many seconds, then returns to the camera for the next person."
 		},
 		{
 			"fieldname": "column_break_kiosk",
@@ -115,26 +119,29 @@
 			"fieldname": "pin_enabled",
 			"fieldtype": "Check",
 			"label": "Allow PIN Attendance",
-			"default": "1"
+			"default": "1",
+			"description": "Lets employees who have a PIN mark attendance from the kiosk keypad when face recognition fails. Turning it off hides the keypad on every kiosk. PINs are set and reset by HR only."
 		},
 		{
 			"fieldname": "pin_min_length",
 			"fieldtype": "Int",
 			"label": "Minimum PIN Length",
-			"default": "4"
+			"default": "4",
+			"description": "Shortest PIN HR may set, in digits. Easy PINs such as 1234 or 1111 are always refused."
 		},
 		{
 			"fieldname": "pin_max_length",
 			"fieldtype": "Int",
 			"label": "Maximum PIN Length",
-			"default": "6"
+			"default": "6",
+			"description": "Longest PIN HR may set, in digits. Keep it at or above the minimum."
 		},
 		{
 			"fieldname": "photo_retention_days",
 			"fieldtype": "Int",
 			"label": "Keep Proof Photos (days)",
 			"default": "30",
-			"description": "PIN check-ins save a photo as proof. Older photos are deleted daily."
+			"description": "A PIN check-in saves the kiosk camera photo on the Employee Checkin as proof of who was there. Photos older than this many days are deleted automatically each day; the check-in record itself stays. Face check-ins save no photo."
 		}
 	],
 	"permissions": [
