@@ -10,7 +10,12 @@
 		"column_break_a",
 		"similarity",
 		"employee_checkin",
-		"detail"
+		"detail",
+		"section_offline",
+		"local_id",
+		"record_hash",
+		"column_break_offline",
+		"recorded_at"
 	],
 	"fields": [
 		{
@@ -37,7 +42,7 @@
 			"in_list_view": 1,
 			"in_standard_filter": 1,
 			"search_index": 1,
-			"options": "Matched\nNo Match\nBad Signature\nChallenge Failed\nLocked Out\nNo Active Template\nUnknown Face\nAmbiguous Face\nWrong PIN\nNo PIN\nPIN Disabled"
+			"options": "Matched\nNo Match\nBad Signature\nChallenge Failed\nLocked Out\nNo Active Template\nUnknown Face\nAmbiguous Face\nWrong PIN\nNo PIN\nPIN Disabled\nOffline Held\nOffline Duplicate\nOffline Approved\nOffline Rejected"
 		},
 		{
 			"fieldname": "method",
@@ -69,6 +74,37 @@
 			"fieldtype": "Small Text",
 			"label": "Detail",
 			"read_only": 1
+		},
+		{
+			"fieldname": "section_offline",
+			"fieldtype": "Section Break",
+			"label": "Offline scan"
+		},
+		{
+			"fieldname": "local_id",
+			"fieldtype": "Data",
+			"label": "Scan ID",
+			"read_only": 1,
+			"search_index": 1,
+			"description": "Random id the kiosk gave this scan. Sending the same scan twice is recognised by it."
+		},
+		{
+			"fieldname": "record_hash",
+			"fieldtype": "Data",
+			"label": "Record Hash",
+			"read_only": 1,
+			"description": "Fingerprint of the scan. The next scan from the same kiosk must quote it, so a missing or reordered scan shows up."
+		},
+		{
+			"fieldname": "column_break_offline",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "recorded_at",
+			"fieldtype": "Datetime",
+			"label": "Recorded At",
+			"read_only": 1,
+			"description": "When the person stood at the kiosk, worked out from the last server contact, not from the phone's own clock."
 		}
 	],
 	"permissions": [

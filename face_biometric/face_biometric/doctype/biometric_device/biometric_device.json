@@ -11,6 +11,7 @@
 		"column_break_a",
 		"device_label",
 		"location",
+		"allow_offline",
 		"registered_on",
 		"last_seen",
 		"section_key",
@@ -100,6 +101,14 @@
 			"reqd": 1,
 			"set_only_once": 1,
 			"no_copy": 1
+		},
+		{
+			"fieldname": "allow_offline",
+			"fieldtype": "Check",
+			"label": "Allow Offline Attendance",
+			"default": "0",
+			"depends_on": "eval:doc.device_kind=='Kiosk'",
+			"description": "Lets this kiosk save face scans while it has no internet and send them later. Needs Allow Offline Attendance in Face Biometric Settings. Off by default."
 		}
 	],
 	"permissions": [

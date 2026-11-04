@@ -19,7 +19,13 @@
 		"pin_enabled",
 		"pin_min_length",
 		"pin_max_length",
-		"photo_retention_days"
+		"photo_retention_days",
+		"section_offline",
+		"offline_enabled",
+		"offline_max_hours",
+		"column_break_offline",
+		"offline_clock_tolerance_minutes",
+		"held_retention_days"
 	],
 	"fields": [
 		{
@@ -142,6 +148,43 @@
 			"label": "Keep Proof Photos (days)",
 			"default": "30",
 			"description": "A PIN check-in saves the kiosk camera photo on the Employee Checkin as proof of who was there. Photos older than this many days are deleted automatically each day; the check-in record itself stays. Face check-ins save no photo."
+		},
+		{
+			"fieldname": "section_offline",
+			"fieldtype": "Section Break",
+			"label": "Offline Attendance"
+		},
+		{
+			"fieldname": "offline_enabled",
+			"fieldtype": "Check",
+			"label": "Allow Offline Attendance",
+			"default": "1",
+			"description": "When a kiosk cannot reach the server, it saves each face scan on the phone, encrypted, and sends it later. The server then works out who it was; the phone never decides. Each kiosk must also be switched on by HR under Biometric Device."
+		},
+		{
+			"fieldname": "offline_max_hours",
+			"fieldtype": "Int",
+			"label": "Offline Window (hours)",
+			"default": "72",
+			"description": "How long a scan may wait on the phone. A scan older than this when it arrives, or taken after the phone restarted, is held for HR to review instead of becoming a check-in."
+		},
+		{
+			"fieldname": "column_break_offline",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "offline_clock_tolerance_minutes",
+			"fieldtype": "Int",
+			"label": "Clock Tolerance (minutes)",
+			"default": "5",
+			"description": "How far the phone's own clock may differ from the time worked out from the last server contact before the scan is held for HR. Catches a clock that was changed."
+		},
+		{
+			"fieldname": "held_retention_days",
+			"fieldtype": "Int",
+			"label": "Review Window (days)",
+			"default": "90",
+			"description": "A held offline scan that HR has not approved or rejected within this many days is closed as rejected, with a note. Nothing is deleted."
 		}
 	],
 	"permissions": [
