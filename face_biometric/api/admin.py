@@ -4,6 +4,7 @@ from frappe.utils import cint
 
 from face_biometric.services.admin_desk import AdminDesk
 from face_biometric.services.kiosk_registry import KioskRegistry
+from face_biometric.services.offline_desk import OfflineDesk
 
 
 @frappe.whitelist(methods=["POST"])
@@ -80,3 +81,23 @@ def get_settings() -> dict:
 def update_settings(values: str) -> dict:
 	"""`values` is a JSON object of setting name to value."""
 	return AdminDesk().update_settings(frappe.parse_json(values))
+
+
+@frappe.whitelist(methods=["GET"])
+def offline_review() -> list:
+	return OfflineDesk().held()
+
+
+@frappe.whitelist(methods=["POST"])
+def approve_offline(log: str, note: str) -> dict:
+	return OfflineDesk().approve(log, note)
+
+
+@frappe.whitelist(methods=["POST"])
+def reject_offline(log: str, note: str) -> dict:
+	return OfflineDesk().reject(log, note)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_device_offline(device: str, allow: int) -> dict:
+	return OfflineDesk().set_device(device, allow)

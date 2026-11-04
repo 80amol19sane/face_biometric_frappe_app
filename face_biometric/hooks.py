@@ -156,7 +156,10 @@ app_license = "mit"
 # ---------------
 
 scheduler_events = {
-	"daily": ["face_biometric.tasks.photo_retention.delete_expired_proof_photos"],
+	"daily": [
+		"face_biometric.tasks.photo_retention.delete_expired_proof_photos",
+		"face_biometric.tasks.offline_retention.close_unreviewed_offline_scans",
+	],
 }
 
 # scheduler_events = {
@@ -265,4 +268,3 @@ scheduler_events = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

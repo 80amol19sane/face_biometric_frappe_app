@@ -16,8 +16,17 @@ SETTING_FIELDS = (
 	"pin_max_length",
 	"kiosk_return_seconds",
 	"photo_retention_days",
+	"offline_enabled",
+	"offline_max_hours",
+	"held_retention_days",
 )
-SYSTEM_MANAGER_FIELDS = ("match_threshold", "identify_margin", "max_failed_attempts", "lockout_minutes")
+SYSTEM_MANAGER_FIELDS = (
+	"match_threshold",
+	"identify_margin",
+	"max_failed_attempts",
+	"lockout_minutes",
+	"offline_clock_tolerance_minutes",
+)
 
 
 class AdminDesk:
@@ -42,6 +51,11 @@ class AdminDesk:
 			"present_today": len(present & active),
 			"failed_today": self._failures({"creation": [">=", today]}, count=True),
 			"pending": frappe.db.count("Face Template", {"status": "Pending"}),
+			"offline_today": frappe.db.count(
+				"Face Verification Log",
+				{"outcome": "Matched", "recorded_at": ["is", "set"], "creation": [">=", today]},
+			),
+			"awaiting_review": frappe.db.count("Face Verification Log", {"outcome": "Offline Held"}),
 		}
 
 	def employees(self, search: str | None, show: str, start: int, limit: int) -> dict:
@@ -198,6 +212,7 @@ class AdminDesk:
 					"device_kind",
 					"device_label",
 					"location",
+					"allow_offline",
 					"status",
 					"employee_name",
 					"last_seen",
