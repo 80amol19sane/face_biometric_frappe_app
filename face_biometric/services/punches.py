@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import frappe
 from frappe.utils import add_to_date, getdate, now_datetime
 
@@ -28,24 +30,51 @@ class Punches:
 		)
 		return rows[0] if rows else None
 
-	def next_log_type(self) -> str:
-		"""IN after an OUT or nothing, OUT after an IN. Looks back 24h so night shifts still alternate."""
+	def next_log_type(self, at: datetime | None = None) -> str:
+		"""IN after an OUT or nothing, OUT after an IN. Looks back 24h so night shifts still alternate.
+
+		`at` is the moment being punched, for a scan that arrives late; punches after it are ignored.
+		"""
+		at = at or now_datetime()
 		last = frappe.db.get_value(
 			"Employee Checkin",
-			{"employee": self.employee, "time": [">=", add_to_date(now_datetime(), hours=-24)]},
+			{"employee": self.employee, "time": ["between", [add_to_date(at, hours=-24), at]]},
 			"log_type",
 			order_by="time desc",
 		)
 		return "OUT" if last == "IN" else "IN"
 
+	def near(self, at: datetime, seconds: int) -> bool:
+		"""Is there a punch within `seconds` of `at`, on either side?"""
+		return bool(
+			frappe.db.exists(
+				"Employee Checkin",
+				{
+					"employee": self.employee,
+					"time": [
+						"between",
+						[add_to_date(at, seconds=-seconds), add_to_date(at, seconds=seconds)],
+					],
+				},
+			)
+		)
+
 	def record(
-		self, log_type: str, device: str, latitude: float | None = None, longitude: float | None = None
+		self,
+		log_type: str,
+		device: str,
+		latitude: float | None = None,
+		longitude: float | None = None,
+		at: datetime | None = None,
 	):
-		"""Insert the Employee Checkin. Server time, never the phone's clock: a phone clock can be set to anything."""
+		"""Insert the Employee Checkin. Server time, never the phone's clock: a phone clock can be set to anything.
+
+		`at` is only for a scan saved offline, whose time the server has already worked out and checked.
+		"""
 		checkin = frappe.new_doc("Employee Checkin")
 		checkin.employee = self.employee
 		checkin.log_type = log_type
-		checkin.time = now_datetime()
+		checkin.time = at or now_datetime()
 		checkin.device_id = device
 		checkin.latitude = latitude
 		checkin.longitude = longitude
