@@ -1,14 +1,14 @@
 import frappe
 from frappe import _
-from frappe.utils import cint, now_datetime
 
 from face_biometric.core.challenge import ChallengeStore
 from face_biometric.core.device_signature import signing_payload
 from face_biometric.core.embedding import Embedding
-from face_biometric.core.shift_standing import ShiftStanding
 from face_biometric.face_biometric.doctype.face_biometric_settings.face_biometric_settings import get_settings
 from face_biometric.services import verification_log
 from face_biometric.services.identity import current_employee, owned_device
+from face_biometric.services.punches import Punches
+from face_biometric.services.shift_report import shift_standing
 
 LOG_TYPES = ("IN", "OUT")
 
@@ -42,7 +42,7 @@ class FaceCheckin:
 			"name": checkin.name,
 			"time": str(checkin.time),
 			"log_type": checkin.log_type,
-			"shift": self._shift_standing(checkin),
+			"shift": shift_standing(checkin),
 		}
 
 	def _refuse_if_locked(self, device: str):
@@ -81,33 +81,9 @@ class FaceCheckin:
 		return frappe.get_doc("Face Template", template)
 
 	def _punch(self, device, request: dict):
-		# Server time, never the phone's clock: a phone clock can be set to anything.
-		checkin = frappe.new_doc("Employee Checkin")
-		checkin.employee = self.employee
-		checkin.log_type = request["log_type"]
-		checkin.time = now_datetime()
-		checkin.device_id = device.name
-		checkin.latitude = request.get("latitude")
-		checkin.longitude = request.get("longitude")
-		checkin.insert(ignore_permissions=True)
-		return checkin
-
-	def _shift_standing(self, checkin) -> dict | None:
-		"""HRMS resolves the shift while inserting the checkin; None when the punch is off-shift."""
-		if not checkin.shift:
-			return None
-		grace = frappe.db.get_value(
-			"Shift Type", checkin.shift, ["late_entry_grace_period", "early_exit_grace_period"], as_dict=True
+		return Punches(self.employee).record(
+			request["log_type"], device.name, request.get("latitude"), request.get("longitude")
 		)
-		standing = ShiftStanding(
-			checkin.log_type,
-			checkin.time,
-			checkin.shift_start,
-			checkin.shift_end,
-			cint(grace.late_entry_grace_period),
-			cint(grace.early_exit_grace_period),
-		)
-		return {"name": checkin.shift, **standing.evaluate()}
 
 	def _reject(self, outcome: str, device, message: str, **fields):
 		verification_log.record(self.employee, outcome, device.name, **fields)

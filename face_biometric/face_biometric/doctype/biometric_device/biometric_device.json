@@ -4,11 +4,14 @@
 	"naming_rule": "Expression (old style)",
 	"track_changes": 1,
 	"field_order": [
+		"device_kind",
 		"employee",
 		"employee_name",
 		"status",
 		"column_break_a",
 		"device_label",
+		"location",
+		"allow_offline",
 		"registered_on",
 		"last_seen",
 		"section_key",
@@ -16,14 +19,28 @@
 	],
 	"fields": [
 		{
+			"fieldname": "device_kind",
+			"fieldtype": "Select",
+			"label": "Device Kind",
+			"options": "Personal\nKiosk",
+			"default": "Personal",
+			"reqd": 1,
+			"set_only_once": 1,
+			"in_list_view": 1,
+			"in_standard_filter": 1,
+			"description": "Personal: one employee's own phone. Kiosk: a shared phone at an entrance that anyone can punch in at."
+		},
+		{
 			"fieldname": "employee",
 			"fieldtype": "Link",
 			"label": "Employee",
 			"options": "Employee",
-			"reqd": 1,
+			"reqd": 0,
 			"set_only_once": 1,
 			"in_list_view": 1,
-			"search_index": 1
+			"search_index": 1,
+			"mandatory_depends_on": "eval:doc.device_kind!='Kiosk'",
+			"depends_on": "eval:doc.device_kind!='Kiosk'"
 		},
 		{
 			"fieldname": "employee_name",
@@ -53,6 +70,14 @@
 			"label": "Device Label"
 		},
 		{
+			"fieldname": "location",
+			"fieldtype": "Link",
+			"label": "Location",
+			"options": "Shift Location",
+			"depends_on": "eval:doc.device_kind=='Kiosk'",
+			"description": "Where this kiosk stands, for example Main Entrance."
+		},
+		{
 			"fieldname": "registered_on",
 			"fieldtype": "Datetime",
 			"label": "Registered On",
@@ -76,6 +101,14 @@
 			"reqd": 1,
 			"set_only_once": 1,
 			"no_copy": 1
+		},
+		{
+			"fieldname": "allow_offline",
+			"fieldtype": "Check",
+			"label": "Allow Offline Attendance",
+			"default": "0",
+			"depends_on": "eval:doc.device_kind=='Kiosk'",
+			"description": "Lets this kiosk save face scans while it has no internet and send them later. Needs Allow Offline Attendance in Face Biometric Settings. Off by default."
 		}
 	],
 	"permissions": [

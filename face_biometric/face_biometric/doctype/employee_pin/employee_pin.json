@@ -1,0 +1,107 @@
+{
+	"name": "Employee PIN",
+	"autoname": "field:employee",
+	"naming_rule": "By fieldname",
+	"track_changes": 0,
+	"field_order": [
+		"employee",
+		"employee_name",
+		"enabled",
+		"column_break_a",
+		"set_by",
+		"set_on",
+		"section_secret",
+		"pin_hash"
+	],
+	"fields": [
+		{
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"label": "Employee",
+			"options": "Employee",
+			"reqd": 1,
+			"unique": 1,
+			"set_only_once": 1,
+			"in_list_view": 1,
+			"search_index": 1
+		},
+		{
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"label": "Employee Name",
+			"fetch_from": "employee.employee_name",
+			"read_only": 1,
+			"in_list_view": 1
+		},
+		{
+			"fieldname": "enabled",
+			"fieldtype": "Check",
+			"label": "PIN Attendance Enabled",
+			"default": "1",
+			"in_list_view": 1,
+			"in_standard_filter": 1
+		},
+		{
+			"fieldname": "column_break_a",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "set_by",
+			"fieldtype": "Link",
+			"label": "Set By",
+			"options": "User",
+			"read_only": 1
+		},
+		{
+			"fieldname": "set_on",
+			"fieldtype": "Datetime",
+			"label": "Set On",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_secret",
+			"fieldtype": "Section Break",
+			"label": "Secret"
+		},
+		{
+			"fieldname": "pin_hash",
+			"fieldtype": "Data",
+			"label": "PIN Hash",
+			"read_only": 1,
+			"hidden": 1,
+			"no_copy": 1,
+			"permlevel": 1,
+			"description": "Salted PBKDF2 hash. The PIN itself is never stored."
+		}
+	],
+	"permissions": [
+		{
+			"role": "HR Manager",
+			"read": 1,
+			"write": 1,
+			"create": 1,
+			"delete": 1,
+			"report": 1,
+			"export": 1
+		},
+		{
+			"role": "System Manager",
+			"read": 1,
+			"write": 1,
+			"create": 1,
+			"delete": 1,
+			"report": 1,
+			"export": 1
+		}
+	],
+	"creation": "2026-11-03 10:00:00.000000",
+	"modified": "2026-11-03 10:00:00.000000",
+	"modified_by": "Administrator",
+	"owner": "Administrator",
+	"module": "Face Biometric",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"custom": 0,
+	"sort_field": "modified",
+	"sort_order": "DESC"
+}
