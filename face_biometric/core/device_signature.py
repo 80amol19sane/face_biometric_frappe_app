@@ -68,3 +68,35 @@ def kiosk_payload(action: str, device: str, nonce: str, digest: str) -> bytes:
 	employee id and proof photo for a PIN punch. The action stops a signature for one being used for the other.
 	"""
 	return "|".join([KIOSK_PAYLOAD_VERSION, action, device, nonce, digest]).encode()
+
+
+OFFLINE_PAYLOAD_VERSION = "fb3"
+
+
+def offline_payload(
+	device: str,
+	local_id: str,
+	prev_hash: str,
+	anchored_ms: int,
+	wall_ms: int,
+	boot_count: int,
+	anchor_boot_count: int,
+	embedding_digest: str,
+) -> bytes:
+	"""The exact bytes a kiosk signs for one scan it saved while offline.
+
+	There is no server nonce to bind it to, so the scan carries its own id and the hash of the scan
+	before it. The embedding digest binds the face; the times and boot counts bind when it was taken.
+	"""
+	parts = [
+		OFFLINE_PAYLOAD_VERSION,
+		device,
+		local_id,
+		prev_hash,
+		str(anchored_ms),
+		str(wall_ms),
+		str(boot_count),
+		str(anchor_boot_count),
+		embedding_digest,
+	]
+	return "|".join(parts).encode()
