@@ -33,3 +33,17 @@ def look_up(device: str, nonce: str, employee: str, signature: str) -> dict:
 def pin_check_in(device: str, nonce: str, employee: str, pin: str, photo: str, signature: str) -> dict:
 	"""Punch in or out with an employee id and PIN. The photo is kept as proof."""
 	return Kiosk(device).pin_punch(nonce, employee, pin, photo, signature)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=12, seconds=60)
+def sync_offline(device: str, nonce: str, records: str, signature: str) -> list:
+	"""Send the face scans saved while this kiosk had no connection. The server decides who each was."""
+	return Kiosk(device).sync_offline(nonce, _as_list(records), signature)
+
+
+def _as_list(records) -> list:
+	parsed = frappe.parse_json(records) if isinstance(records, str) else records
+	if not isinstance(parsed, list):
+		frappe.throw("records must be a list.")
+	return parsed

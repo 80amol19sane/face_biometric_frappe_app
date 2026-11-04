@@ -1,4 +1,5 @@
 import hashlib
+from datetime import UTC, datetime
 from functools import cache
 
 import frappe
@@ -8,17 +9,21 @@ from frappe.utils import format_time, get_datetime, now_datetime, time_diff_in_s
 from face_biometric.core.challenge import ChallengeStore
 from face_biometric.core.device_signature import kiosk_payload
 from face_biometric.core.embedding import Embedding
-from face_biometric.core.matcher import AMBIGUOUS, MATCHED, FaceMatcher
+from face_biometric.core.matcher import AMBIGUOUS, MATCHED
+from face_biometric.core.offline_record import OfflineRecord, OfflineRecordError, batch_digest, record_hash
 from face_biometric.core.pin import ITERATIONS, PinHash
 from face_biometric.core.proof_photo import ProofPhotoError, decode_proof_photo
 from face_biometric.face_biometric.doctype.face_biometric_settings.face_biometric_settings import get_settings
 from face_biometric.services import verification_log
+from face_biometric.services.face_search import FaceSearch
+from face_biometric.services.offline_sync import OfflineSync
 from face_biometric.services.punches import Punches
 from face_biometric.services.shift_report import shift_standing
 
 PAUSE_AFTER_FAILURES = 5
 PAUSE_MINUTES = 1
 COOLDOWN_SECONDS = 120
+MAX_OFFLINE_BATCH = 50
 WRONG_ID_OR_PIN = "Wrong employee ID or PIN."
 
 
@@ -39,6 +44,8 @@ class Kiosk:
 		return {
 			"nonce": ChallengeStore(ttl).issue(self.device.name),
 			"expires_in": ttl,
+			# The kiosk keeps this with its running time to date offline scans; see core/offline_time.py.
+			"server_time_ms": int(datetime.now(UTC).timestamp() * 1000),
 			"config": self._config(),
 		}
 
@@ -52,7 +59,12 @@ class Kiosk:
 			"return_seconds": self.settings.kiosk_return_seconds,
 			"location": self.device.location,
 			"label": self.device.device_label,
+			"offline_enabled": self._offline_allowed(),
+			"offline_max_hours": self.settings.offline_max_hours,
 		}
+
+	def _offline_allowed(self) -> bool:
+		return bool(self.settings.offline_enabled and self.device.allow_offline)
 
 	def identify(self, nonce: str, embedding_b64: str, signature: str) -> dict:
 		"""Who is this face? Punches them in or out, or refuses without saying who came closest."""
@@ -63,6 +75,19 @@ class Kiosk:
 		matched = self._match(embedding)
 		self._refuse_if_locked(matched.employee, "Face")
 		return self._punch(matched.employee, "Face", similarity=matched.similarity)
+
+	def sync_offline(self, nonce: str, records: list, signature: str) -> list[dict]:
+		"""Settle the scans saved while this kiosk had no connection. See OfflineSync."""
+		if not self._offline_allowed():
+			frappe.throw(_("Offline attendance is not turned on for this kiosk."), frappe.PermissionError)
+		if not 0 < len(records) <= MAX_OFFLINE_BATCH:
+			frappe.throw(_("Send between 1 and {0} scans at a time.").format(MAX_OFFLINE_BATCH))
+		self._refuse_if_paused()
+		self._spend(nonce)
+		self._verify("sync", nonce, _batch_digest(self.device.name, records), signature)
+		results = OfflineSync(self.device, self.settings).settle(records)
+		self.device.touch()
+		return results
 
 	def look_up(self, nonce: str, employee: str, signature: str) -> dict:
 		"""The name behind an employee id, so a person can confirm it is them before entering a PIN."""
@@ -107,15 +132,8 @@ class Kiosk:
 			self._fail(None, "Bad Signature", _("This request was not signed by the kiosk."))
 
 	def _match(self, embedding: Embedding):
-		scored = []
-		for name in frappe.get_all("Face Template", {"status": "Active"}, pluck="name"):
-			template = frappe.get_doc("Face Template", name)
-			enrolled = template.load()
-			if enrolled.dimensions == embedding.dimensions:
-				scored.append((template.employee, enrolled.similarity(embedding)))
-		matcher = FaceMatcher(self.settings.match_threshold, self.settings.identify_margin)
-		result = matcher.decide(scored)
-		if result.status == MATCHED and self._is_active(result.employee):
+		result = FaceSearch(self.settings).find(embedding)
+		if result.status == MATCHED:
 			return result
 		outcome = "Ambiguous Face" if result.status == AMBIGUOUS else "Unknown Face"
 		message = (
@@ -188,10 +206,6 @@ class Kiosk:
 		}
 
 	@staticmethod
-	def _is_active(employee: str) -> bool:
-		return bool(frappe.db.exists("Employee", {"name": employee, "status": "Active"}))
-
-	@staticmethod
 	def _photo(photo: str) -> bytes:
 		try:
 			return decode_proof_photo(photo)
@@ -220,6 +234,18 @@ def _attach(jpeg: bytes, doctype: str, name: str, employee: str | None):
 			"attached_to_name": name,
 		}
 	).insert(ignore_permissions=True)
+
+
+def _batch_digest(device: str, records: list) -> str:
+	"""Hash of the scans in the order sent. A scan that will not parse makes the digest unmatchable, so the batch is refused."""
+	hashes = []
+	for raw in records:
+		try:
+			record = OfflineRecord.parse(raw)
+			hashes.append(record_hash(record.payload(device, Embedding(record.embedding).digest())))
+		except OfflineRecordError, frappe.ValidationError:
+			hashes.append("unreadable")
+	return batch_digest(hashes)
 
 
 def _sha(data: bytes) -> str:

@@ -2,7 +2,8 @@ import frappe
 from frappe.utils import add_to_date, now_datetime
 
 DOCTYPE = "Face Verification Log"
-NOT_FAILURES = ("Matched", "Locked Out")
+# Offline outcomes are settled in bulk at sync, not a person failing at the kiosk, so they must not lock anyone out.
+NOT_FAILURES = ("Matched", "Locked Out", "Offline Held", "Offline Duplicate", "Offline Approved")
 
 
 def record(employee: str | None, outcome: str, device: str | None = None, **fields) -> str:
@@ -31,5 +32,12 @@ def recent_device_failures(device: str, window_minutes: int) -> int:
 	"""Failures on one device inside the window, whoever they were for. Used to pause a kiosk being guessed at."""
 	since = add_to_date(now_datetime(), minutes=-window_minutes)
 	return frappe.db.count(
-		DOCTYPE, {"device": device, "outcome": ["not in", NOT_FAILURES], "creation": [">", since]}
+		DOCTYPE,
+		{
+			"device": device,
+			"outcome": ["not in", NOT_FAILURES],
+			"creation": [">", since],
+			# A sync can settle many strangers in one second; that is not someone guessing at the kiosk.
+			"recorded_at": ["is", "not set"],
+		},
 	)
