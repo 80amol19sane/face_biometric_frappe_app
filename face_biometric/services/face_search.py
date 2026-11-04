@@ -22,6 +22,15 @@ class FaceSearch:
 			return MatchResult(NO_MATCH, similarity=result.similarity)
 		return result
 
+	def similarity_to(self, employee: str, embedding: Embedding) -> float | None:
+		"""How alike this face is to one named employee's enrolled face; None if they have none."""
+		scores = []
+		for name in frappe.get_all("Face Template", {"status": "Active", "employee": employee}, pluck="name"):
+			enrolled = frappe.get_doc("Face Template", name).load()
+			if enrolled.dimensions == embedding.dimensions:
+				scores.append(enrolled.similarity(embedding))
+		return max(scores) if scores else None
+
 	@staticmethod
 	def _is_active(employee: str) -> bool:
 		return bool(frappe.db.exists("Employee", {"name": employee, "status": "Active"}))

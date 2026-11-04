@@ -7,3 +7,4 @@
 face_biometric.patches.set_device_kind_personal
 face_biometric.patches.set_kiosk_setting_defaults
 face_biometric.patches.set_offline_setting_defaults
+face_biometric.patches.set_offline_review_floor_default

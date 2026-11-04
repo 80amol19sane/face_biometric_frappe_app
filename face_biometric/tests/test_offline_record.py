@@ -64,3 +64,16 @@ class TestOfflineRecord(TestCase):
 	def test_the_batch_digest_depends_on_order_and_membership(self):
 		self.assertNotEqual(batch_digest(["a", "b"]), batch_digest(["b", "a"]))
 		self.assertNotEqual(batch_digest(["a", "b"]), batch_digest(["a"]))
+
+	def test_the_typed_employee_id_is_optional_and_trimmed(self):
+		self.assertEqual(OfflineRecord.parse(RAW).claimed_employee, "")
+		self.assertEqual(OfflineRecord.parse({**RAW, "claimed_employee": " HR-EMP-00032 "}).claimed_employee, "HR-EMP-00032")
+
+	def test_a_typed_id_that_is_not_text_or_too_long_is_refused(self):
+		for bad in (12, ["x"], "x" * 141):
+			with self.assertRaises(OfflineRecordError):
+				OfflineRecord.parse({**RAW, "claimed_employee": bad})
+
+	def test_the_typed_id_is_not_part_of_what_the_kiosk_signs(self):
+		plain = OfflineRecord.parse(RAW).payload("D", "x")
+		self.assertEqual(plain, OfflineRecord.parse({**RAW, "claimed_employee": "HR-EMP-00032"}).payload("D", "x"))

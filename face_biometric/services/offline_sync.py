@@ -54,6 +54,11 @@ class OfflineSync:
 
 	def _decide(self, record: OfflineRecord, embedding: Embedding, payload: bytes) -> dict:
 		found = self.search.find(embedding)
+		claimed = self._claimed(record)
+		if claimed and (found.status != MATCHED or found.employee != claimed):
+			held = self._hold_claim(record, embedding, payload, found, claimed)
+			if held:
+				return held
 		if self._looks_like_someone(found):
 			return self._hold_near_miss(record, payload, found)
 		if found.status != MATCHED:
@@ -88,15 +93,34 @@ class OfflineSync:
 			f"Closest match only ({found.similarity:.2f}, below the {self.settings.match_threshold:.2f} needed). "
 			"HR must confirm who this was."
 		)
+		return self._hold(record, payload, replace(found, employee=found.candidate), reason)
+
+	def _hold_claim(self, record: OfflineRecord, embedding: Embedding, payload: bytes, found, claimed: str):
+		"""The person typed an employee ID at the kiosk. It is a hint: it only gets the scan in front of HR."""
+		similarity = self.search.similarity_to(claimed, embedding)
+		if similarity is None or similarity < self.settings.offline_review_floor:
+			return None
+		reason = f"The person entered ID {claimed}; their face is {similarity:.2f} alike to that employee."
+		if found.status == MATCHED:
+			reason += f" The face matched {found.employee} ({found.similarity:.2f}) instead."
+		return self._hold(record, payload, replace(found, employee=claimed, similarity=similarity), reason)
+
+	def _hold(self, record: OfflineRecord, payload: bytes, found, reason: str) -> dict:
 		return self._close(
 			record,
 			"Offline Held",
 			HELD,
 			" ".join([reason, *self._problems(record)]),
 			payload,
-			replace(found, employee=found.candidate),
+			found,
 			self._taken_at(record),
 		)
+
+	@staticmethod
+	def _claimed(record: OfflineRecord) -> str:
+		"""The typed ID if it names a real, active employee; otherwise nothing."""
+		name = record.claimed_employee
+		return name if name and frappe.db.exists("Employee", {"name": name, "status": "Active"}) else ""
 
 	def _accept(self, record: OfflineRecord, payload: bytes, found, taken: datetime) -> dict:
 		punches = Punches(found.employee)

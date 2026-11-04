@@ -24,6 +24,8 @@ class OfflineRecord:
 	anchor_boot_count: int
 	embedding: str
 	signature: str
+	# What the person typed at the kiosk. A hint for HR only: it is not signed and never decides anything.
+	claimed_employee: str = ""
 
 	@classmethod
 	def parse(cls, raw: object) -> "OfflineRecord":
@@ -38,6 +40,7 @@ class OfflineRecord:
 			anchor_boot_count=_whole(raw, "anchor_boot_count"),
 			embedding=_text(raw, "embedding", 1, MAX_EMBEDDING_CHARS),
 			signature=_text(raw, "signature", 1, 400),
+			claimed_employee=_optional_text(raw, "claimed_employee", 140),
 		)
 
 	def payload(self, device: str, embedding_digest: str) -> bytes:
@@ -68,6 +71,15 @@ def _text(raw: dict, key: str, low: int, high: int) -> str:
 	if not isinstance(value, str) or not low <= len(value) <= high:
 		raise OfflineRecordError(f"{key} is missing or the wrong length.")
 	return value
+
+
+def _optional_text(raw: dict, key: str, high: int) -> str:
+	value = raw.get(key)
+	if value is None:
+		return ""
+	if not isinstance(value, str) or len(value) > high:
+		raise OfflineRecordError(f"{key} is the wrong length.")
+	return value.strip()
 
 
 def _whole(raw: dict, key: str, high: int = 2**31) -> int:
