@@ -16,3 +16,6 @@ def owned_device(device: str, employee: str):
 	if not doc or doc.employee != employee or doc.status != "Active":
 		frappe.throw(_("This device is not registered to you."), frappe.PermissionError)
 	return frappe.get_doc("Biometric Device", device)
+
+
+ADMIN_ROLES = ("HR Manager", "System Manager")

@@ -5,7 +5,7 @@ DOCTYPE = "Face Verification Log"
 NOT_FAILURES = ("Matched", "Locked Out")
 
 
-def record(employee: str, outcome: str, device: str | None = None, **fields) -> str:
+def record(employee: str | None, outcome: str, device: str | None = None, **fields) -> str:
 	log = frappe.get_doc(doctype=DOCTYPE, employee=employee, device=device, outcome=outcome, **fields)
 	log.insert(ignore_permissions=True)
 	# The caller usually raises next, which rolls the request back. Commit so the failure stays on record.
@@ -24,4 +24,12 @@ def recent_failures(employee: str, window_minutes: int) -> int:
 	return frappe.db.count(
 		DOCTYPE,
 		{"employee": employee, "outcome": ["not in", NOT_FAILURES], "creation": [">", since]},
+	)
+
+
+def recent_device_failures(device: str, window_minutes: int) -> int:
+	"""Failures on one device inside the window, whoever they were for. Used to pause a kiosk being guessed at."""
+	since = add_to_date(now_datetime(), minutes=-window_minutes)
+	return frappe.db.count(
+		DOCTYPE, {"device": device, "outcome": ["not in", NOT_FAILURES], "creation": [">", since]}
 	)

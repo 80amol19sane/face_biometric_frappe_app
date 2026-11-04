@@ -6,9 +6,11 @@
 		"employee",
 		"device",
 		"outcome",
+		"method",
 		"column_break_a",
 		"similarity",
-		"employee_checkin"
+		"employee_checkin",
+		"detail"
 	],
 	"fields": [
 		{
@@ -16,7 +18,7 @@
 			"fieldtype": "Link",
 			"label": "Employee",
 			"options": "Employee",
-			"reqd": 1,
+			"reqd": 0,
 			"in_list_view": 1,
 			"search_index": 1
 		},
@@ -35,7 +37,16 @@
 			"in_list_view": 1,
 			"in_standard_filter": 1,
 			"search_index": 1,
-			"options": "Matched\nNo Match\nBad Signature\nChallenge Failed\nLocked Out\nNo Active Template"
+			"options": "Matched\nNo Match\nBad Signature\nChallenge Failed\nLocked Out\nNo Active Template\nUnknown Face\nAmbiguous Face\nWrong PIN\nNo PIN\nPIN Disabled"
+		},
+		{
+			"fieldname": "method",
+			"fieldtype": "Select",
+			"label": "Method",
+			"options": "Face\nPIN",
+			"default": "Face",
+			"in_list_view": 1,
+			"in_standard_filter": 1
 		},
 		{
 			"fieldname": "column_break_a",
@@ -52,6 +63,12 @@
 			"fieldtype": "Link",
 			"label": "Employee Checkin",
 			"options": "Employee Checkin"
+		},
+		{
+			"fieldname": "detail",
+			"fieldtype": "Small Text",
+			"label": "Detail",
+			"read_only": 1
 		}
 	],
 	"permissions": [

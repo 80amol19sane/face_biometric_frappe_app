@@ -10,7 +10,16 @@
 		"max_failed_attempts",
 		"lockout_minutes",
 		"section_enrolment",
-		"require_enrolment_approval"
+		"require_enrolment_approval",
+		"section_kiosk",
+		"require_liveness",
+		"identify_margin",
+		"kiosk_return_seconds",
+		"column_break_kiosk",
+		"pin_enabled",
+		"pin_min_length",
+		"pin_max_length",
+		"photo_retention_days"
 	],
 	"fields": [
 		{
@@ -71,6 +80,61 @@
 			"label": "Require HR Approval Of New Faces",
 			"default": "1",
 			"description": "Stops one employee enrolling another person's face under their own account."
+		},
+		{
+			"fieldname": "section_kiosk",
+			"fieldtype": "Section Break",
+			"label": "Kiosk and PIN"
+		},
+		{
+			"fieldname": "require_liveness",
+			"fieldtype": "Check",
+			"label": "Require Liveness Check",
+			"default": "1",
+			"description": "Kiosks ask for a head turn or smile before matching. The check runs on the phone, so it cannot be verified by the server."
+		},
+		{
+			"fieldname": "identify_margin",
+			"fieldtype": "Float",
+			"label": "Match Margin",
+			"default": "0.05",
+			"precision": "3",
+			"description": "How far the best match must beat the runner-up. Stops two similar faces being confused."
+		},
+		{
+			"fieldname": "kiosk_return_seconds",
+			"fieldtype": "Int",
+			"label": "Return To Camera After (seconds)",
+			"default": "5"
+		},
+		{
+			"fieldname": "column_break_kiosk",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "pin_enabled",
+			"fieldtype": "Check",
+			"label": "Allow PIN Attendance",
+			"default": "1"
+		},
+		{
+			"fieldname": "pin_min_length",
+			"fieldtype": "Int",
+			"label": "Minimum PIN Length",
+			"default": "4"
+		},
+		{
+			"fieldname": "pin_max_length",
+			"fieldtype": "Int",
+			"label": "Maximum PIN Length",
+			"default": "6"
+		},
+		{
+			"fieldname": "photo_retention_days",
+			"fieldtype": "Int",
+			"label": "Keep Proof Photos (days)",
+			"default": "30",
+			"description": "PIN check-ins save a photo as proof. Older photos are deleted daily."
 		}
 	],
 	"permissions": [

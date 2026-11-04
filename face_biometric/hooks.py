@@ -155,6 +155,10 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+	"daily": ["face_biometric.tasks.photo_retention.delete_expired_proof_photos"],
+}
+
 # scheduler_events = {
 # 	"all": [
 # 		"face_biometric.tasks.all"
