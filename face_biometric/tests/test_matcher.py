@@ -32,3 +32,10 @@ class TestFaceMatcher(TestCase):
 
 	def test_nobody_enrolled_is_no_match(self):
 		self.assertEqual(self.matcher.decide([]).status, NO_MATCH)
+
+	def test_a_near_miss_still_names_the_closest_person(self):
+		result = self.matcher.decide([("A", 0.45), ("B", 0.10)])
+		self.assertEqual((result.status, result.employee, result.candidate), (NO_MATCH, None, "A"))
+
+	def test_an_ambiguous_face_names_its_best_candidate(self):
+		self.assertEqual(self.matcher.decide([("A", 0.70), ("B", 0.68)]).candidate, "A")

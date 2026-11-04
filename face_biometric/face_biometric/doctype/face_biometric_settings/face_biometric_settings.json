@@ -25,7 +25,8 @@
 		"offline_max_hours",
 		"column_break_offline",
 		"offline_clock_tolerance_minutes",
-		"held_retention_days"
+		"held_retention_days",
+		"offline_review_floor"
 	],
 	"fields": [
 		{
@@ -185,6 +186,14 @@
 			"label": "Review Window (days)",
 			"default": "90",
 			"description": "A held offline scan that HR has not approved or rejected within this many days is closed as rejected, with a note. Nothing is deleted."
+		},
+		{
+			"fieldname": "offline_review_floor",
+			"fieldtype": "Float",
+			"label": "Offline Review Floor",
+			"default": "0.4",
+			"precision": "3",
+			"description": "An offline scan that scores below the Match Threshold but at or above this is not thrown away: it is held for HR with the closest employee shown, and HR confirms who it was. Below this it is rejected. Must be lower than the Match Threshold; set it equal to turn the feature off."
 		}
 	],
 	"permissions": [

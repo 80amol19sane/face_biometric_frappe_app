@@ -1,10 +1,11 @@
+from dataclasses import replace
 from datetime import UTC, datetime
 
 import frappe
 from frappe.utils import convert_utc_to_system_timezone, now_datetime
 
 from face_biometric.core.embedding import Embedding
-from face_biometric.core.matcher import AMBIGUOUS, MATCHED
+from face_biometric.core.matcher import AMBIGUOUS, MATCHED, NO_MATCH
 from face_biometric.core.offline_record import OfflineRecord, OfflineRecordError, record_hash
 from face_biometric.core.offline_time import time_problems
 from face_biometric.services import verification_log
@@ -53,6 +54,8 @@ class OfflineSync:
 
 	def _decide(self, record: OfflineRecord, embedding: Embedding, payload: bytes) -> dict:
 		found = self.search.find(embedding)
+		if self._looks_like_someone(found):
+			return self._hold_near_miss(record, payload, found)
 		if found.status != MATCHED:
 			reason = (
 				"More than one person looked alike."
@@ -71,6 +74,29 @@ class OfflineSync:
 		if problems:
 			return self._close(record, "Offline Held", HELD, " ".join(problems), payload, found, taken)
 		return self._accept(record, payload, found, taken)
+
+	def _looks_like_someone(self, found) -> bool:
+		return (
+			found.status == NO_MATCH
+			and bool(found.candidate)
+			and found.similarity >= self.settings.offline_review_floor
+		)
+
+	def _hold_near_miss(self, record: OfflineRecord, payload: bytes, found) -> dict:
+		"""Not sure enough to punch anyone in, too close to throw away: HR sees the closest employee and decides."""
+		reason = (
+			f"Closest match only ({found.similarity:.2f}, below the {self.settings.match_threshold:.2f} needed). "
+			"HR must confirm who this was."
+		)
+		return self._close(
+			record,
+			"Offline Held",
+			HELD,
+			" ".join([reason, *self._problems(record)]),
+			payload,
+			replace(found, employee=found.candidate),
+			self._taken_at(record),
+		)
 
 	def _accept(self, record: OfflineRecord, payload: bytes, found, taken: datetime) -> dict:
 		punches = Punches(found.employee)

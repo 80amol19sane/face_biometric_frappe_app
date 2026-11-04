@@ -5,6 +5,7 @@ DEFAULTS = {
 	"offline_max_hours": 72,
 	"offline_clock_tolerance_minutes": 5,
 	"held_retention_days": 90,
+	"offline_review_floor": 0.4,
 }
 
 

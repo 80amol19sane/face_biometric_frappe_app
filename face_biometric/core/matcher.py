@@ -11,6 +11,8 @@ class MatchResult:
 	employee: str | None = None
 	similarity: float = 0.0
 	runner_up: float = 0.0
+	# The best-scoring person even when the result is not a match, so HR can be shown who the face looked like.
+	candidate: str | None = None
 
 
 class FaceMatcher:
@@ -31,7 +33,7 @@ class FaceMatcher:
 		employee, best = ranked[0]
 		runner_up = ranked[1][1] if len(ranked) > 1 else -1.0
 		if best < self.threshold:
-			return MatchResult(NO_MATCH, similarity=best, runner_up=max(runner_up, 0.0))
+			return MatchResult(NO_MATCH, similarity=best, runner_up=max(runner_up, 0.0), candidate=employee)
 		if best - runner_up < self.margin:
-			return MatchResult(AMBIGUOUS, similarity=best, runner_up=runner_up)
+			return MatchResult(AMBIGUOUS, similarity=best, runner_up=runner_up, candidate=employee)
 		return MatchResult(MATCHED, employee, best, max(runner_up, 0.0))

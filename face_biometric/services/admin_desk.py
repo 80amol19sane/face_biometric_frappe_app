@@ -19,6 +19,7 @@ SETTING_FIELDS = (
 	"offline_enabled",
 	"offline_max_hours",
 	"held_retention_days",
+	"offline_review_floor",
 )
 SYSTEM_MANAGER_FIELDS = (
 	"match_threshold",
