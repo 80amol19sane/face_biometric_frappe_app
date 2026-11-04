@@ -39,6 +39,8 @@ class TestOfflineRecord(TestCase):
 			{"local_id": "short"},
 			{"anchored_ms": "1800000000000"},
 			{"anchored_ms": -1},
+			{"anchored_ms": 10**15},
+			{"boot_count": 2**40},
 			{"boot_count": True},
 			{"embedding": ""},
 			{"signature": 5},

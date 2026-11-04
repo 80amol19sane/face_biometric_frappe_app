@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from face_biometric.core.device_signature import offline_payload
 
 MAX_EMBEDDING_CHARS = 8000
+# 1 January 2100 in milliseconds; anything later is not a real time and would overflow a date.
+MAX_MS = 4_102_444_800_000
 
 
 class OfflineRecordError(ValueError):
@@ -30,8 +32,8 @@ class OfflineRecord:
 		return cls(
 			local_id=_text(raw, "local_id", 8, 64),
 			prev_hash=_text(raw, "prev_hash", 0, 64),
-			anchored_ms=_whole(raw, "anchored_ms"),
-			wall_ms=_whole(raw, "wall_ms"),
+			anchored_ms=_whole(raw, "anchored_ms", MAX_MS),
+			wall_ms=_whole(raw, "wall_ms", MAX_MS),
 			boot_count=_whole(raw, "boot_count"),
 			anchor_boot_count=_whole(raw, "anchor_boot_count"),
 			embedding=_text(raw, "embedding", 1, MAX_EMBEDDING_CHARS),
@@ -68,8 +70,8 @@ def _text(raw: dict, key: str, low: int, high: int) -> str:
 	return value
 
 
-def _whole(raw: dict, key: str) -> int:
+def _whole(raw: dict, key: str, high: int = 2**31) -> int:
 	value = raw.get(key)
-	if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+	if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= high:
 		raise OfflineRecordError(f"{key} must be a whole number.")
 	return value

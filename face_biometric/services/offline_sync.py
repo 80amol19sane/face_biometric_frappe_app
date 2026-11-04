@@ -126,7 +126,8 @@ class OfflineSync:
 			detail=reason,
 			local_id=record.local_id,
 			record_hash=record_hash(payload) if payload else None,
-			recorded_at=taken,
+			# Every scan from a sync carries a time, which is also how pausing a kiosk tells them from live attempts.
+			recorded_at=taken or self._taken_at(record),
 		)
 		return self._result(record.local_id, status, None if status == ACCEPTED else reason)
 
